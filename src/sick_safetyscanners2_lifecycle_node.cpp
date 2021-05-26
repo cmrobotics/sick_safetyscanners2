@@ -32,9 +32,7 @@
  */
 //----------------------------------------------------------------------
 
-#include <sick_safetyscanners_base/SickSafetyscanners.h>
-
-#include <sick_safetyscanners2/SickSafetyscannersRos2.h>
+#include <sick_safetyscanners2/SickSafetyscannersLifeCycle.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -50,8 +48,8 @@ int main(int argc, char** argv)
 
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor exe;
-  std::shared_ptr<sick::SickSafetyscannersLifeCycleRos2> nh_ =
-    std::make_shared<LegFilter>("SickSafetyscannersLifecycle");
+  std::shared_ptr<sick::SickSafetyscannersLifeCycle> nh_ =
+  std::make_shared<sick::SickSafetyscannersLifeCycle>("SickSafetyscannersLifecycle"); //node name
 
   exe.add_node(nh_->get_node_base_interface());
   exe.spin();
