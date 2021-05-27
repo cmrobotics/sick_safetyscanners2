@@ -25,10 +25,10 @@
 
 //----------------------------------------------------------------------
 /*!
- * \file SickSafetyscannersRos2.h
+ * \file SickSafetyscannersLifeCycle.hpp
  *
- * \author  Lennart Puck <puck@fzi.de>
- * \date    2020-12-08
+ * \authors  Soma gallai<soma.gallai@cm-robotics.com>  Erwin Lejeune <erwin.lejeune@cm-robotics.com>
+ * \date    2021-05-27
  */
 //----------------------------------------------------------------------
 
