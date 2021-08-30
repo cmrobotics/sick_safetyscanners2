@@ -124,6 +124,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
   m_output_paths_publisher->on_activate();
   m_raw_data_publisher->on_activate();
 
+  RCLCPP_INFO(this->get_logger(), "Node activated, device is running...");
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_deactivate(const rclcpp_lifecycle::State &)
@@ -134,6 +136,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
   m_extended_laser_scan_publisher->on_deactivate();
   m_output_paths_publisher->on_deactivate();
   m_raw_data_publisher->on_deactivate();
+
+  RCLCPP_INFO(this->get_logger(), "Node deactivated, device stopped...");
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
