@@ -85,6 +85,9 @@ SickSafetyscannersLifeCycle::on_configure(const rclcpp_lifecycle::State&)
               std::placeholders::_2));
 
 
+  m_msg_creator = std::make_unique<sick::MessageCreator>(
+    m_frame_id, m_time_offset, m_range_min, m_range_max, m_angle_offset, m_min_intensities);
+
   // Bind callback
   std::function<void(const sick::datastructure::Data&)> callback =
     std::bind(&SickSafetyscannersLifeCycle::receiveUDPPaket, this, std::placeholders::_1);
@@ -125,7 +128,7 @@ SickSafetyscannersLifeCycle::on_activate(const rclcpp_lifecycle::State&)
   // Start async receiving and processing of sensor data
   m_device->run();
   m_device->changeSensorSettings(m_communications_settings);
-
+    
   m_laser_scan_publisher->on_activate();
   m_extended_laser_scan_publisher->on_activate();
   m_output_paths_publisher->on_activate();
