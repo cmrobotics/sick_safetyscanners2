@@ -49,15 +49,18 @@ SickSafetyscannersLifeCycle::SickSafetyscannersLifeCycle(const std::string& node
 {
   RCLCPP_INFO(this->get_logger(), "Initializing SickSafetyscannersLifeCycle ");
 
-  // read parameters!
+  // declare parameters
   initialize_parameters();
-  load_parameters();
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 SickSafetyscannersLifeCycle::on_configure(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(this->get_logger(), "on_configure()...");
+
+  // Populate Parameters
+  load_parameters();
+
   sick::types::port_t tcp_port{2122};
 
   // Dynamic Parameter Change client
