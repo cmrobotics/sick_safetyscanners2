@@ -37,8 +37,10 @@
 namespace sick {
 
 
-SickSafetyscannersLifeCycle::SickSafetyscannersLifeCycle (const std::string & node_name, bool intra_process_comms)
-  : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(intra_process_comms))
+SickSafetyscannersLifeCycle::SickSafetyscannersLifeCycle(const std::string& node_name,
+                                                         bool intra_process_comms)
+  : rclcpp_lifecycle::LifecycleNode(
+      node_name, rclcpp::NodeOptions().use_intra_process_comms(intra_process_comms))
   , m_time_offset(0.0)
   , m_range_min(0.0)
   , m_range_max(0.0)
@@ -50,13 +52,13 @@ SickSafetyscannersLifeCycle::SickSafetyscannersLifeCycle (const std::string & no
   // read parameters!
   initialize_parameters();
   load_parameters();
-  
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_configure(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SickSafetyscannersLifeCycle::on_configure(const rclcpp_lifecycle::State&)
 {
- RCLCPP_INFO(this->get_logger(), "on_configure()...");
- sick::types::port_t tcp_port{2122};
+  RCLCPP_INFO(this->get_logger(), "on_configure()...");
+  sick::types::port_t tcp_port{2122};
 
   // Dynamic Parameter Change client
   m_param_callback = add_on_set_parameters_callback(
@@ -77,9 +79,11 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
 
   m_field_data_service = this->create_service<sick_safetyscanners2_interfaces::srv::FieldData>(
     "field_data",
-    std::bind(
-      &SickSafetyscannersLifeCycle::getFieldData, this, std::placeholders::_1, std::placeholders::_2));
-    
+    std::bind(&SickSafetyscannersLifeCycle::getFieldData,
+              this,
+              std::placeholders::_1,
+              std::placeholders::_2));
+
 
   // Bind callback
   std::function<void(const sick::datastructure::Data&)> callback =
@@ -109,18 +113,18 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
   m_msg_creator = std::make_unique<sick::MessageCreator>(
     m_frame_id, m_time_offset, m_range_min, m_range_max, m_angle_offset, m_min_intensities);
 
-  RCLCPP_INFO(this->get_logger(), "Node Configured"); 
+  RCLCPP_INFO(this->get_logger(), "Node Configured");
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_activate(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SickSafetyscannersLifeCycle::on_activate(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(this->get_logger(), "on_activate()...");
   // Start async receiving and processing of sensor data
   m_device->run();
   m_device->changeSensorSettings(m_communications_settings);
-    
   m_laser_scan_publisher->on_activate();
   m_extended_laser_scan_publisher->on_activate();
   m_output_paths_publisher->on_activate();
@@ -130,7 +134,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_deactivate(const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SickSafetyscannersLifeCycle::on_deactivate(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(this->get_logger(), "on_deactivate()...");
   m_device->stop();
@@ -144,7 +149,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_cleanup (const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SickSafetyscannersLifeCycle::on_cleanup(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(this->get_logger(), "on_cleanup()...");
   m_laser_scan_publisher.reset();
@@ -154,7 +160,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSa
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn SickSafetyscannersLifeCycle::on_shutdown (const rclcpp_lifecycle::State &)
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SickSafetyscannersLifeCycle::on_shutdown(const rclcpp_lifecycle::State&)
 {
   RCLCPP_INFO(this->get_logger(), "on_shutdown()...");
   m_laser_scan_publisher.reset();
@@ -447,7 +454,15 @@ SickSafetyscannersLifeCycle::parametersCallback(std::vector<rclcpp::Parameter> p
 
 void SickSafetyscannersLifeCycle::receiveUDPPaket(const sick::datastructure::Data& data)
 {
-  if (!data.getMeasurementDataPtr()->isEmpty() && !data.getDerivedValuesPtr()->isEmpty() && m_msg_creator)
+  if (!m_msg_creator)
+  {
+    RCLCPP_WARN(get_logger(),
+                "Received UDPP packet before all objects were instantiated, ignoring this packet.");
+    return;
+  }
+
+  if (!data.getMeasurementDataPtr()->isEmpty() && !data.getDerivedValuesPtr()->isEmpty() &&
+      m_msg_creator)
   {
     auto scan = m_msg_creator->createLaserScanMsg(data, this->now());
     m_laser_scan_publisher->publish(scan);
